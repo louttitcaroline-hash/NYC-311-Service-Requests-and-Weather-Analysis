@@ -1789,7 +1789,6 @@ with tab_merged:
         cols = st.columns(3)
         for j, v in enumerate(row_vars):
             try:
-                # Header per plot with an emoji
                 emoji = _emoji_for_var(v)
                 cols[j].subheader(f"{emoji} Calls vs {v}")
 
@@ -1797,14 +1796,12 @@ with tab_merged:
                     daily,
                     x=v,
                     y="call_count",
-                    trendline="ols",
                     labels={v: v, "call_count": "Daily call count"},
                     height=420,
                 )
 
                 cols[j].plotly_chart(fig, use_container_width=True)
 
-                # Automated per-plot analysis directly below the plot
                 try:
                     df_v = daily[[v, "call_count"]].dropna()
                     n = len(df_v)
@@ -1812,10 +1809,10 @@ with tab_merged:
                         cols[j].markdown(f"- **{v}**: insufficient data (n={n}) to draw reliable conclusions.")
                         continue
 
-                    r = float(df_v["call_count"].corr(df_v[v]))
-                    lr = LinearRegression().fit(df_v[[v]].values, df_v["call_count"].values)
-                    coef = float(lr.coef_[0])
-                    r2_single = float(lr.score(df_v[[v]].values, df_v["call_count"].values))
+                    r = df_v["call_count"].corr(df_v[v])
+                    if pd.isna(r):
+                        cols[j].markdown(f"- **{v}**: insufficient variability to compute Pearson r.")
+                        continue
 
                     def _strength_label(rval):
                         ar = abs(rval)
@@ -1830,17 +1827,9 @@ with tab_merged:
                     direction = "positive" if r > 0 else ("negative" if r < 0 else "no linear")
                     strength = _strength_label(r)
 
-                    if abs(r) < 0.2:
-                        action = "Little-to-no linear relationship; weather alone is unlikely to drive call volume for this variable."
-                    elif r > 0:
-                        action = "As this variable increases, daily calls tend to increase. Consider monitoring and pre-positioning resources when this variable is elevated."
-                    else:
-                        action = "As this variable increases, daily calls tend to decrease. Investigate whether this reflects fewer weather-driven incidents."
-
                     cols[j].markdown(
                         f"- Pearson r = {r:.3f} ({strength}, {direction})  \n"
-                        f"- OLS coef = {coef:.3f} calls/unit; R² = {r2_single:.3f}  \n"
-                        f"- {action}"
+                        f"- Note: this is correlation only (not causal). Consider further multivariate analysis to control for confounders."
                     )
                 except Exception as _e:
                     cols[j].markdown(f"- **{v}**: could not analyze ({_e})")
