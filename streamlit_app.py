@@ -1750,11 +1750,10 @@ with tab_merged:
     corr_df = corr_ser.reset_index().rename(columns={"index": "variable", "call_count": "pearson_r"})
 
     # =============================
-    # Scatter plots with OLS trendline for all correlated weather vars
+    # Scatter plots with  trendline for all correlated weather vars
     # =============================
-    st.header("📈 Scatter Plots: Daily Call Counts vs Weather Variables with OLS Trendline")
+    st.header("📈 Scatter Plots: Daily Call Counts vs Weather Variables with Trendline")
     st.write("These scatter plots visualize the relationship between daily 311 service request counts and various weather variables.")
-    st.write("Ordinary Least Squares (OLS) trendline is included to illustrate the linear relationship, if any, between the two variables. The R² value from the OLS fit indicates how well the weather variable explains the variance in daily call counts.")
     exclude = {"call_count", "Rain", "SnowIce"}
     corr_vars = set(corr_df["variable"].tolist())
     # preserve original column order from `daily`
